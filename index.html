@@ -147,6 +147,50 @@ footer{text-align:center;color:var(--muted);font-size:0.72rem;margin-top:26px;op
 .modal-actions{display:flex;gap:10px;margin-top:18px}
 .modal-actions .btn{flex:1;text-align:center}
 
+.field select{
+  width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);
+  background:rgba(0,0,0,0.18);color:var(--ink);font-family:inherit;font-size:0.95rem;
+  appearance:none;-webkit-appearance:none;
+}
+.field select:invalid{color:var(--muted)}
+
+.tabs{display:flex;gap:8px;margin-bottom:16px}
+.tab-btn{
+  flex:1;font-family:'Mulish',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;
+  border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--muted);
+  background:rgba(255,255,255,0.02);text-align:center;transition:background 0.15s ease, color 0.15s ease;
+}
+.tab-btn.active{background:linear-gradient(180deg,var(--gold-bright),var(--gold));color:#12240f;border-color:transparent}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+.province-filter{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.pill{
+  font-family:'Mulish',sans-serif;font-weight:700;font-size:0.76rem;cursor:pointer;
+  border:1px solid var(--line);border-radius:99px;padding:6px 13px;color:var(--muted);
+  background:rgba(255,255,255,0.02);
+}
+.pill.active{background:rgba(212,175,55,0.18);color:var(--gold-bright);border-color:var(--gold)}
+
+.province-card{padding:16px 14px;margin-bottom:16px}
+.province-card h2{font-size:0.95rem;color:var(--gold-bright);margin-bottom:12px}
+.province-bar-row{margin-bottom:10px}
+.province-bar-row:last-child{margin-bottom:0}
+.province-bar-label{display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:4px}
+.province-bar-label .name{color:var(--ink);font-weight:700}
+.province-bar-label .meta{color:var(--muted)}
+.province-bar-track{height:8px;border-radius:99px;background:rgba(255,255,255,0.06);overflow:hidden}
+.province-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-bright));border-radius:99px}
+
+.group-header{
+  position:sticky;top:0;z-index:3;margin:18px 0 10px;padding:7px 12px;
+  background:var(--felt-0);border:1px solid var(--line);border-radius:10px;
+  font-family:'Cinzel',Georgia,serif;font-size:0.82rem;color:var(--gold-bright);
+  text-transform:capitalize;letter-spacing:0.02em;
+}
+.torneo-list .group-header:first-child{margin-top:0}
+.locChip{color:var(--muted)}
+
 @media (min-width:520px){
   .stat-card.wide{grid-column:auto}
 }
@@ -178,23 +222,39 @@ footer{text-align:center;color:var(--muted);font-size:0.72rem;margin-top:26px;op
     </div>
   </header>
 
-  <section class="stats-grid" id="statsGrid" aria-label="Estadísticas"></section>
+  <nav class="tabs" role="tablist">
+    <button class="tab-btn active" id="tabBtnTorneos" data-tab="torneos" type="button" role="tab">Torneos</button>
+    <button class="tab-btn" id="tabBtnStats" data-tab="stats" type="button" role="tab">Estadísticas</button>
+  </nav>
 
-  <section class="panel chart-card">
-    <h2>Balance acumulado</h2>
-    <div class="sub" id="chartSub">Suma de premios menos precios, en orden cronológico</div>
-    <div class="chart-wrap">
-      <canvas id="balanceChart"></canvas>
-      <div class="tooltip" id="chartTooltip"></div>
+  <section class="tab-panel active" id="panelTorneos">
+    <div class="toolbar">
+      <h3 id="listCount">Torneos</h3>
+      <button class="btn btn-primary" id="btnNuevo" type="button">+ Nuevo torneo</button>
     </div>
+
+    <section class="torneo-list" id="torneoList" aria-label="Lista de torneos"></section>
   </section>
 
-  <div class="toolbar">
-    <h3 id="listCount">Torneos</h3>
-    <button class="btn btn-primary" id="btnNuevo" type="button">+ Nuevo torneo</button>
-  </div>
+  <section class="tab-panel" id="panelStats">
+    <div class="province-filter" id="provinceFilter"></div>
 
-  <section class="torneo-list" id="torneoList" aria-label="Lista de torneos"></section>
+    <section class="stats-grid" id="statsGrid" aria-label="Estadísticas"></section>
+
+    <section class="panel chart-card">
+      <h2>Balance acumulado</h2>
+      <div class="sub" id="chartSub">Suma de premios menos precios, en orden cronológico</div>
+      <div class="chart-wrap">
+        <canvas id="balanceChart"></canvas>
+        <div class="tooltip" id="chartTooltip"></div>
+      </div>
+    </section>
+
+    <section class="panel province-card">
+      <h2>Torneos por provincia</h2>
+      <div id="provinceBreakdown"></div>
+    </section>
+  </section>
 
   <footer>
     Datos sincronizados en la nube (Firebase). Cualquiera con este enlace puede verlos y editarlos.<br>
@@ -221,6 +281,24 @@ footer{text-align:center;color:var(--muted);font-size:0.72rem;margin-top:26px;op
       <div class="field">
         <label for="fLugar">Lugar</label>
         <input type="text" id="fLugar" placeholder="Ej: Batzoki Arangoiti - Arangoiti" required>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="fProvincia">Provincia</label>
+          <select id="fProvincia">
+            <option value="">Sin especificar</option>
+            <option value="Bizkaia">Bizkaia</option>
+            <option value="Gipuzkoa">Gipuzkoa</option>
+            <option value="Araba">Araba</option>
+            <option value="Nafarroa">Nafarroa</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fLocalidad">Localidad</label>
+          <input type="text" id="fLocalidad" placeholder="Ej: Bilbao">
+        </div>
       </div>
 
       <div class="field-row">
@@ -295,45 +373,47 @@ footer{text-align:center;color:var(--muted);font-size:0.72rem;margin-top:26px;op
 
   /* ---------- Seed data (transcribed + verified against source spreadsheet) ---------- */
   var SEED = [
-    { fecha:"2024-08-20", precio:0,  lugar:`"Hor dago abante!" - txosna Bilbo (ayuntamiento)`, parejas:128, victoria:false, ronda:1, posicion:"65-128/128", premio:0,  otrosPremios:"", anotaciones:"Nos barrieron" },
-    { fecha:"2024-08-22", precio:0,  lugar:`"Txoko del mojito" - txosna Bilbo (jardines)`, parejas:37, victoria:false, ronda:3, posicion:"9-16/37", premio:0, otrosPremios:"", anotaciones:"Entramos en infomus, txema" },
-    { fecha:"2024-08-31", precio:20, lugar:`Tito's bar (Izarra) - Erandio`, parejas:25, victoria:false, ronda:1, posicion:"17-25/25", premio:0, otrosPremios:"", anotaciones:"Cuñau-suegro quiero cagar, fumar y fo…" },
-    { fecha:"2024-09-04", precio:10, lugar:`Txosnagunea - Elorrio`, parejas:40, victoria:false, ronda:1, posicion:"33-40/40", premio:0, otrosPremios:"", anotaciones:"Racismo, nacen Xabi 'ta Aitor" },
-    { fecha:"2024-09-13", precio:10, lugar:`Ormazabal jatetxea - Lutxana Erandio jaiak`, parejas:16, victoria:false, ronda:3, posicion:"3-4/16", premio:10, otrosPremios:"Ardoa", anotaciones:"Xabi y Aitor, Puesto: 3/6, pero se hizo liga así que tuvimos que ganar el # de partidas equivalente a un torneo de 16 personas" },
-    { fecha:"2024-09-16", precio:0,  lugar:`Iturrondo plaza - Galdakaoko jaiak`, parejas:85, victoria:false, ronda:2, posicion:"33-64/85", premio:0, otrosPremios:"", anotaciones:"Tramposos y bordes, frustración y enfado con haber ido" },
-    { fecha:"2024-10-04", precio:10, lugar:`Uni de Deusto - Bilbo`, parejas:64, victoria:false, ronda:1, posicion:"33-64/64", premio:0, otrosPremios:"", anotaciones:"Perder en primera ronda contra chavales que acabaron ganando el torneo. Nacen luffy y borraska" },
-    { fecha:"2024-09-29", precio:10, lugar:`Txopera jaiak - Leioa`, parejas:12, victoria:false, ronda:2, posicion:"5-8/12", premio:0, otrosPremios:"", anotaciones:"Los de Erandio, primera ronda bien contra unos bastante buenos y la segunda todo el rato al sol contra unos bordes" },
-    { fecha:"2024-10-13", precio:10, lugar:`Concurso de la EHU - Bilbo`, parejas:48, victoria:false, ronda:5, posicion:"3-4/48", premio:0, otrosPremios:"Ardoa (terceros)", anotaciones:"Nos costó mil años y mucho acoso conseguir los vinos" },
-    { fecha:"2024-11-13", precio:12, lugar:`Batzoki Arangoiti - Arangoiti`, parejas:34, victoria:false, ronda:3, posicion:"9-16/34", premio:0, otrosPremios:"Lunch", anotaciones:"Era a tres partidas perdidas y ganamos dos. Tanguita, tongo del organizador, gente maja, y yo (Josu) no pude jugar la última partida por incompatibilidad de horario" },
-    { fecha:"2024-12-27", precio:20, lugar:`Badis - Ondarru`, parejas:38, victoria:false, ronda:1, posicion:"33-38/38", premio:0, otrosPremios:"", anotaciones:"Perdimos en la ronda previa contra los que acabaron ganando el torneo. Nos lo pasamos bien recorriendo Ondarru y compramos txapelas (3 entre los dos) porque estaban de liquidación." },
-    { fecha:"2025-01-24", precio:15, lugar:`Narea - Aulesti`, parejas:19, victoria:false, ronda:1, posicion:"17-19/19", premio:0, otrosPremios:"", anotaciones:"Una vez más, perder en primera ronda contra los ganadores en un pueblo perdido y de noche. (Presentador de ETB)" },
-    { fecha:"2025-02-12", precio:5,  lugar:`Zimamus - EHU Leioa`, parejas:30, victoria:false, ronda:3, posicion:"5-8/30", premio:0, otrosPremios:"", anotaciones:"Justitos de tiempo y barrer a posibles tranpatis; perder en primera ronda del torneo de campeones contra los que acaban ganando, quedándonos a las puertas del premaster otra p*ta vez" },
-    { fecha:"2025-02-15", precio:22, lugar:`Liga Mus - EHU Ingenieros`, parejas:28, victoria:false, ronda:3, posicion:"5-8/28", premio:0, otrosPremios:"", anotaciones:"Tonto y tontín: malos jugadores que nos ganaron 3-0 en el mayor espectáculo de magia que hemos visto nunca (además, contaban muy rápido); jugamos contra Jaime Cole que es de mi cole y su compañero, un triunfo de la educación sexual moderna; gernikeses pesaos; Héctor comete su mayor cagada en el mus" },
-    { fecha:"2025-03-24", precio:0,  lugar:`Batzoki Santutxu - Santutxu`, parejas:50, victoria:false, ronda:1, posicion:"33-50/50", premio:0, otrosPremios:"", anotaciones:"Malas horas" },
-    { fecha:"2025-04-26", precio:20, lugar:`Nagusien etxea - Gatikako Jaiak`, parejas:10, victoria:false, ronda:4, posicion:"2/10", premio:80, otrosPremios:"", anotaciones:"Amigo de mi aitite; unos que pelearon con David; perder la final 4-0 mayormente por cartas" },
-    { fecha:"2025-07-12", precio:20, lugar:`Zaldu - Gordexola`, parejas:20, victoria:false, ronda:1, posicion:"17-20/20", premio:0, otrosPremios:"", anotaciones:"Menudo paseo para llegar" },
-    { fecha:"2025-07-19", precio:20, lugar:`Etxebarri`, parejas:20, victoria:false, ronda:3, posicion:"5-8/20", premio:0, otrosPremios:"", anotaciones:"Dos remontadas épicas" },
-    { fecha:"2025-08-02", precio:20, lugar:`Romo`, parejas:62, victoria:false, ronda:1, posicion:"33-62/62", premio:0, otrosPremios:"", anotaciones:"El organizador un hdp, y perder rrrs vs rrrr" },
-    { fecha:"2025-08-10", precio:10, lugar:`Maruri`, parejas:9, victoria:false, ronda:4, posicion:"2/9", premio:30, otrosPremios:"Comida en Irun (bazkaria)", anotaciones:"Segundos, y los yayos tuvieron muchísima suerte" },
-    { fecha:"2025-08-17", precio:10, lugar:`Gogorregi - txosna Bilbo`, parejas:30, victoria:false, ronda:5, posicion:"2/30", premio:0, otrosPremios:"4 botellas de vino", anotaciones:"Épico segundo puesto y perder la final contra el de Aste Nagusi del primer año (barrer primeras dos rondas, luego contra niños de Zimamus y semi contra yayos que pillaban angulas en la peña)" },
-    { fecha:"2025-08-19", precio:0,  lugar:`"Hor dago abante!" - txosna Bilbo (ayuntamiento)`, parejas:128, victoria:false, ronda:2, posicion:"33-64/128", premio:0, otrosPremios:"", anotaciones:"Buena primera ronda y perder contra malísimos en segunda por ser imbéciles y jugar mal" },
-    { fecha:"2025-08-23", precio:20, lugar:`San Bartolomé - Gatika`, parejas:14, victoria:false, ronda:2, posicion:"5-8/14", premio:0, otrosPremios:"", anotaciones:"Perder en segunda ronda contra los que ganaron la última vez, en un 4-3 muy apurado en el que nos remontaron desde ir ganando 3-1" },
-    { fecha:"2025-09-27", precio:22, lugar:`Itsasmendiko jaiak - Zarautz`, parejas:42, victoria:false, ronda:3, posicion:"9-16/42", premio:0, otrosPremios:"", anotaciones:"Primera a 4 rondas, nuestra primera partida la ganamos 4-0" },
-    { fecha:"2025-10-18", precio:30, lugar:`Restaurante Encina - Artziniega`, parejas:25, victoria:false, ronda:1, posicion:"17-25/25", premio:0, otrosPremios:"", anotaciones:"Mucha gente pro y se fumaba dentro del bar" },
-    { fecha:"2025-10-25", precio:0,  lugar:`Casino Luckia - Premaster`, parejas:36, victoria:false, ronda:2, posicion:"17-32/36", premio:0, otrosPremios:"", anotaciones:"Primera vez en un Casino, los baños muy limpios" },
-    { fecha:"2025-12-20", precio:20, lugar:`Lekitxoko - Maite taberna`, parejas:36, victoria:false, ronda:2, posicion:"17-32/36", premio:0, otrosPremios:"", anotaciones:"Uno del Zimamus, ensalada de aguacate, perder dupleta vs dupleta" },
-    { fecha:"2025-12-29", precio:15, lugar:`Poza 42`, parejas:48, victoria:false, ronda:5, posicion:"3-4/48", premio:25, otrosPremios:"", anotaciones:"Bronca en el bar con la chica de Bermeo cuyo compañero era idiota; ganar al organizador con Niko de Otxandiano" },
-    { fecha:"2025-12-30", precio:20, lugar:`Batzoki Miribilla`, parejas:32, victoria:false, ronda:4, posicion:"3-4/32", premio:0, otrosPremios:"Lunch", anotaciones:"Ganar a Txema y a otros de la kuadrilla top, perder contra una txuki" },
-    { fecha:"2026-02-28", precio:20, lugar:`Gaztemus - Luckia Bilbao`, parejas:64, victoria:false, ronda:4, posicion:"5-8/64", premio:0, otrosPremios:"", anotaciones:"Arrasar primeras rondas y ganar a Usan y Jonbas. Los palomos que nos ganaron de suerte celebraron mucho." },
-    { fecha:"2026-04-18", precio:20, lugar:`Premundial - Luckia Bilbao`, parejas:84, victoria:false, ronda:2, posicion:"33-64/84", premio:0, otrosPremios:"", anotaciones:"Ganar dos rondas. Ganar al de Maristas que nos ganó hace tiempo" },
-    { fecha:"2026-04-24", precio:0,  lugar:`EHUP - campus Donosti`, parejas:32, victoria:false, ronda:3, posicion:"5-8/32", premio:0, otrosPremios:"Camiseta de la EHU", anotaciones:"Primera ronda teníamos retraso mental, segunda íbamos colocados, tercera perdemos contra Oier del máster de Héctor - pero Héctor y el amigo de Oier se van, y Josu juega con Oier y gana el torneo" },
-    { fecha:"2026-05-03", precio:20, lugar:`Elorrieta - jaiak`, parejas:17, victoria:false, ronda:2, posicion:"9-16/17", premio:0, otrosPremios:"", anotaciones:"Segunda ronda jugando muy mal ambas partidas" },
-    { fecha:"2026-05-23", precio:20, lugar:`Etxebarri`, parejas:4, victoria:false, ronda:1, posicion:"3-4/4", premio:16, otrosPremios:"Trofeo y almuerzo", anotaciones:"" },
-    { fecha:"2026-07-04", precio:20, lugar:`Kabiezeko batzokia`, parejas:30, victoria:false, ronda:1, posicion:"17-30/30", premio:0, otrosPremios:"", anotaciones:"" }
+    { fecha:"2024-08-20", precio:0,  lugar:`"Hor dago abante!" - txosna Bilbo (ayuntamiento)`, provincia:"", localidad:"", parejas:128, victoria:false, ronda:1, posicion:"65-128/128", premio:0,  otrosPremios:"", anotaciones:"Nos barrieron" },
+    { fecha:"2024-08-22", precio:0,  lugar:`"Txoko del mojito" - txosna Bilbo (jardines)`, provincia:"", localidad:"", parejas:37, victoria:false, ronda:3, posicion:"9-16/37", premio:0, otrosPremios:"", anotaciones:"Entramos en infomus, txema" },
+    { fecha:"2024-08-31", precio:20, lugar:`Tito's bar (Izarra) - Erandio`, provincia:"", localidad:"", parejas:25, victoria:false, ronda:1, posicion:"17-25/25", premio:0, otrosPremios:"", anotaciones:"Cuñau-suegro quiero cagar, fumar y fo…" },
+    { fecha:"2024-09-04", precio:10, lugar:`Txosnagunea - Elorrio`, provincia:"", localidad:"", parejas:40, victoria:false, ronda:1, posicion:"33-40/40", premio:0, otrosPremios:"", anotaciones:"Racismo, nacen Xabi 'ta Aitor" },
+    { fecha:"2024-09-13", precio:10, lugar:`Ormazabal jatetxea - Lutxana Erandio jaiak`, provincia:"", localidad:"", parejas:16, victoria:false, ronda:3, posicion:"3-4/16", premio:10, otrosPremios:"Ardoa", anotaciones:"Xabi y Aitor, Puesto: 3/6, pero se hizo liga así que tuvimos que ganar el # de partidas equivalente a un torneo de 16 personas" },
+    { fecha:"2024-09-16", precio:0,  lugar:`Iturrondo plaza - Galdakaoko jaiak`, provincia:"", localidad:"", parejas:85, victoria:false, ronda:2, posicion:"33-64/85", premio:0, otrosPremios:"", anotaciones:"Tramposos y bordes, frustración y enfado con haber ido" },
+    { fecha:"2024-10-04", precio:10, lugar:`Uni de Deusto - Bilbo`, provincia:"", localidad:"", parejas:64, victoria:false, ronda:1, posicion:"33-64/64", premio:0, otrosPremios:"", anotaciones:"Perder en primera ronda contra chavales que acabaron ganando el torneo. Nacen luffy y borraska" },
+    { fecha:"2024-09-29", precio:10, lugar:`Txopera jaiak - Leioa`, provincia:"", localidad:"", parejas:12, victoria:false, ronda:2, posicion:"5-8/12", premio:0, otrosPremios:"", anotaciones:"Los de Erandio, primera ronda bien contra unos bastante buenos y la segunda todo el rato al sol contra unos bordes" },
+    { fecha:"2024-10-13", precio:10, lugar:`Concurso de la EHU - Bilbo`, provincia:"", localidad:"", parejas:48, victoria:false, ronda:5, posicion:"3-4/48", premio:0, otrosPremios:"Ardoa (terceros)", anotaciones:"Nos costó mil años y mucho acoso conseguir los vinos" },
+    { fecha:"2024-11-13", precio:12, lugar:`Batzoki Arangoiti - Arangoiti`, provincia:"", localidad:"", parejas:34, victoria:false, ronda:3, posicion:"9-16/34", premio:0, otrosPremios:"Lunch", anotaciones:"Era a tres partidas perdidas y ganamos dos. Tanguita, tongo del organizador, gente maja, y yo (Josu) no pude jugar la última partida por incompatibilidad de horario" },
+    { fecha:"2024-12-27", precio:20, lugar:`Badis - Ondarru`, provincia:"", localidad:"", parejas:38, victoria:false, ronda:1, posicion:"33-38/38", premio:0, otrosPremios:"", anotaciones:"Perdimos en la ronda previa contra los que acabaron ganando el torneo. Nos lo pasamos bien recorriendo Ondarru y compramos txapelas (3 entre los dos) porque estaban de liquidación." },
+    { fecha:"2025-01-24", precio:15, lugar:`Narea - Aulesti`, provincia:"", localidad:"", parejas:19, victoria:false, ronda:1, posicion:"17-19/19", premio:0, otrosPremios:"", anotaciones:"Una vez más, perder en primera ronda contra los ganadores en un pueblo perdido y de noche. (Presentador de ETB)" },
+    { fecha:"2025-02-12", precio:5,  lugar:`Zimamus - EHU Leioa`, provincia:"", localidad:"", parejas:30, victoria:false, ronda:3, posicion:"5-8/30", premio:0, otrosPremios:"", anotaciones:"Justitos de tiempo y barrer a posibles tranpatis; perder en primera ronda del torneo de campeones contra los que acaban ganando, quedándonos a las puertas del premaster otra p*ta vez" },
+    { fecha:"2025-02-15", precio:22, lugar:`Liga Mus - EHU Ingenieros`, provincia:"", localidad:"", parejas:28, victoria:false, ronda:3, posicion:"5-8/28", premio:0, otrosPremios:"", anotaciones:"Tonto y tontín: malos jugadores que nos ganaron 3-0 en el mayor espectáculo de magia que hemos visto nunca (además, contaban muy rápido); jugamos contra Jaime Cole que es de mi cole y su compañero, un triunfo de la educación sexual moderna; gernikeses pesaos; Héctor comete su mayor cagada en el mus" },
+    { fecha:"2025-03-24", precio:0,  lugar:`Batzoki Santutxu - Santutxu`, provincia:"", localidad:"", parejas:50, victoria:false, ronda:1, posicion:"33-50/50", premio:0, otrosPremios:"", anotaciones:"Malas horas" },
+    { fecha:"2025-04-26", precio:20, lugar:`Nagusien etxea - Gatikako Jaiak`, provincia:"", localidad:"", parejas:10, victoria:false, ronda:4, posicion:"2/10", premio:80, otrosPremios:"", anotaciones:"Amigo de mi aitite; unos que pelearon con David; perder la final 4-0 mayormente por cartas" },
+    { fecha:"2025-07-12", precio:20, lugar:`Zaldu - Gordexola`, provincia:"", localidad:"", parejas:20, victoria:false, ronda:1, posicion:"17-20/20", premio:0, otrosPremios:"", anotaciones:"Menudo paseo para llegar" },
+    { fecha:"2025-07-19", precio:20, lugar:`Etxebarri`, provincia:"", localidad:"", parejas:20, victoria:false, ronda:3, posicion:"5-8/20", premio:0, otrosPremios:"", anotaciones:"Dos remontadas épicas" },
+    { fecha:"2025-08-02", precio:20, lugar:`Romo`, provincia:"", localidad:"", parejas:62, victoria:false, ronda:1, posicion:"33-62/62", premio:0, otrosPremios:"", anotaciones:"El organizador un hdp, y perder rrrs vs rrrr" },
+    { fecha:"2025-08-10", precio:10, lugar:`Maruri`, provincia:"", localidad:"", parejas:9, victoria:false, ronda:4, posicion:"2/9", premio:30, otrosPremios:"Comida en Irun (bazkaria)", anotaciones:"Segundos, y los yayos tuvieron muchísima suerte" },
+    { fecha:"2025-08-17", precio:10, lugar:`Gogorregi - txosna Bilbo`, provincia:"", localidad:"", parejas:30, victoria:false, ronda:5, posicion:"2/30", premio:0, otrosPremios:"4 botellas de vino", anotaciones:"Épico segundo puesto y perder la final contra el de Aste Nagusi del primer año (barrer primeras dos rondas, luego contra niños de Zimamus y semi contra yayos que pillaban angulas en la peña)" },
+    { fecha:"2025-08-19", precio:0,  lugar:`"Hor dago abante!" - txosna Bilbo (ayuntamiento)`, provincia:"", localidad:"", parejas:128, victoria:false, ronda:2, posicion:"33-64/128", premio:0, otrosPremios:"", anotaciones:"Buena primera ronda y perder contra malísimos en segunda por ser imbéciles y jugar mal" },
+    { fecha:"2025-08-23", precio:20, lugar:`San Bartolomé - Gatika`, provincia:"", localidad:"", parejas:14, victoria:false, ronda:2, posicion:"5-8/14", premio:0, otrosPremios:"", anotaciones:"Perder en segunda ronda contra los que ganaron la última vez, en un 4-3 muy apurado en el que nos remontaron desde ir ganando 3-1" },
+    { fecha:"2025-09-27", precio:22, lugar:`Itsasmendiko jaiak - Zarautz`, provincia:"", localidad:"", parejas:42, victoria:false, ronda:3, posicion:"9-16/42", premio:0, otrosPremios:"", anotaciones:"Primera a 4 rondas, nuestra primera partida la ganamos 4-0" },
+    { fecha:"2025-10-18", precio:30, lugar:`Restaurante Encina - Artziniega`, provincia:"", localidad:"", parejas:25, victoria:false, ronda:1, posicion:"17-25/25", premio:0, otrosPremios:"", anotaciones:"Mucha gente pro y se fumaba dentro del bar" },
+    { fecha:"2025-10-25", precio:0,  lugar:`Casino Luckia - Premaster`, provincia:"", localidad:"", parejas:36, victoria:false, ronda:2, posicion:"17-32/36", premio:0, otrosPremios:"", anotaciones:"Primera vez en un Casino, los baños muy limpios" },
+    { fecha:"2025-12-20", precio:20, lugar:`Lekitxoko - Maite taberna`, provincia:"", localidad:"", parejas:36, victoria:false, ronda:2, posicion:"17-32/36", premio:0, otrosPremios:"", anotaciones:"Uno del Zimamus, ensalada de aguacate, perder dupleta vs dupleta" },
+    { fecha:"2025-12-29", precio:15, lugar:`Poza 42`, provincia:"", localidad:"", parejas:48, victoria:false, ronda:5, posicion:"3-4/48", premio:25, otrosPremios:"", anotaciones:"Bronca en el bar con la chica de Bermeo cuyo compañero era idiota; ganar al organizador con Niko de Otxandiano" },
+    { fecha:"2025-12-30", precio:20, lugar:`Batzoki Miribilla`, provincia:"", localidad:"", parejas:32, victoria:false, ronda:4, posicion:"3-4/32", premio:0, otrosPremios:"Lunch", anotaciones:"Ganar a Txema y a otros de la kuadrilla top, perder contra una txuki" },
+    { fecha:"2026-02-28", precio:20, lugar:`Gaztemus - Luckia Bilbao`, provincia:"", localidad:"", parejas:64, victoria:false, ronda:4, posicion:"5-8/64", premio:0, otrosPremios:"", anotaciones:"Arrasar primeras rondas y ganar a Usan y Jonbas. Los palomos que nos ganaron de suerte celebraron mucho." },
+    { fecha:"2026-04-18", precio:20, lugar:`Premundial - Luckia Bilbao`, provincia:"", localidad:"", parejas:84, victoria:false, ronda:2, posicion:"33-64/84", premio:0, otrosPremios:"", anotaciones:"Ganar dos rondas. Ganar al de Maristas que nos ganó hace tiempo" },
+    { fecha:"2026-04-24", precio:0,  lugar:`EHUP - campus Donosti`, provincia:"", localidad:"", parejas:32, victoria:false, ronda:3, posicion:"5-8/32", premio:0, otrosPremios:"Camiseta de la EHU", anotaciones:"Primera ronda teníamos retraso mental, segunda íbamos colocados, tercera perdemos contra Oier del máster de Héctor - pero Héctor y el amigo de Oier se van, y Josu juega con Oier y gana el torneo" },
+    { fecha:"2026-05-03", precio:20, lugar:`Elorrieta - jaiak`, provincia:"", localidad:"", parejas:17, victoria:false, ronda:2, posicion:"9-16/17", premio:0, otrosPremios:"", anotaciones:"Segunda ronda jugando muy mal ambas partidas" },
+    { fecha:"2026-05-23", precio:20, lugar:`Etxebarri`, provincia:"", localidad:"", parejas:4, victoria:false, ronda:1, posicion:"3-4/4", premio:16, otrosPremios:"Trofeo y almuerzo", anotaciones:"" },
+    { fecha:"2026-07-04", precio:20, lugar:`Kabiezeko batzokia`, provincia:"", localidad:"", parejas:30, victoria:false, ronda:1, posicion:"17-30/30", premio:0, otrosPremios:"", anotaciones:"" }
   ];
 
   var torneos = [];
   var unsubscribeSnapshot = null;
+  var PROVINCIAS = ["Bizkaia", "Gipuzkoa", "Araba", "Nafarroa", "Otro"];
+  var statsProvinceFilter = "";
 
   /* ---------- Firestore data layer ---------- */
   function ensureSeeded(){
@@ -446,7 +526,7 @@ footer{text-align:center;color:var(--muted);font-size:0.72rem;margin-top:26px;op
   };
 
   function renderStats(){
-    var s = computeStats(torneos);
+    var s = computeStats(getFilteredTorneos());
     var el = document.getElementById("statsGrid");
     var winCls = s.balance >= 0 ? "pos" : "neg";
     var cards = [
@@ -469,11 +549,17 @@ footer{text-align:center;color:var(--muted);font-size:0.72rem;margin-top:26px;op
     }).join("");
   }
 
+  /* ---------- Province filtering ---------- */
+  function getFilteredTorneos(){
+    if (!statsProvinceFilter) return torneos;
+    return torneos.filter(function(t){ return t.provincia === statsProvinceFilter; });
+  }
+
   /* ---------- Chart ---------- */
   var chartState = { points: [], hoverIndex: -1 };
 
-  function getChartData(){
-    var sorted = torneos.slice().sort(function(a,b){ return a.fecha.localeCompare(b.fecha); });
+  function getChartData(list){
+    var sorted = list.slice().sort(function(a,b){ return a.fecha.localeCompare(b.fecha); });
     var running = 0;
     return sorted.map(function(t){
       running += (Number(t.premio)||0) - (Number(t.precio)||0);
@@ -613,14 +699,54 @@ footer{text-align:center;color:var(--muted);font-size:0.72rem;margin-top:26px;op
   }
 
   function renderChart(){
-    chartState.points = getChartData();
+    chartState.points = getChartData(getFilteredTorneos());
     var sub = document.getElementById("chartSub");
     if (!chartState.points.length){
       sub.textContent = "Sin torneos todavía";
     } else {
-      sub.textContent = "Suma de premios menos precios, en orden cronológico";
+      sub.textContent = "Suma de premios menos precios, en orden cronológico" + (statsProvinceFilter ? " · " + statsProvinceFilter : "");
     }
     drawChart();
+  }
+
+  function renderProvinceFilter(){
+    var el = document.getElementById("provinceFilter");
+    var present = PROVINCIAS.filter(function(p){
+      return torneos.some(function(t){ return t.provincia === p; });
+    });
+    var pills = [{ value:"", label:"Todas" }].concat(present.map(function(p){ return { value:p, label:p }; }));
+    el.innerHTML = pills.map(function(p){
+      var active = p.value === statsProvinceFilter ? " active" : "";
+      return '<button type="button" class="pill' + active + '" data-provincia="' + escapeHtml(p.value) + '">' + escapeHtml(p.label) + '</button>';
+    }).join("");
+  }
+
+  function renderProvinceBreakdown(){
+    var el = document.getElementById("provinceBreakdown");
+    var buckets = {};
+    torneos.forEach(function(t){
+      var key = t.provincia || "Sin especificar";
+      if (!buckets[key]) buckets[key] = { count:0, gastado:0, ganado:0 };
+      buckets[key].count++;
+      buckets[key].gastado += Number(t.precio) || 0;
+      buckets[key].ganado += Number(t.premio) || 0;
+    });
+    var keys = Object.keys(buckets).sort(function(a,b){ return buckets[b].count - buckets[a].count; });
+    if (!keys.length){
+      el.innerHTML = '<div class="empty">Sin torneos todavía</div>';
+      return;
+    }
+    var maxCount = Math.max.apply(null, keys.map(function(k){ return buckets[k].count; }));
+    el.innerHTML = keys.map(function(k){
+      var b = buckets[k];
+      var balance = b.ganado - b.gastado;
+      var pct = maxCount ? Math.round((b.count / maxCount) * 100) : 0;
+      return '<div class="province-bar-row">' +
+        '<div class="province-bar-label"><span class="name">' + escapeHtml(k) + '</span>' +
+          '<span class="meta">' + b.count + ' torneo' + (b.count===1?'':'s') + ' · ' + fmtEuro(balance) + '</span></div>' +
+        '<div class="province-bar-track"><div class="province-bar-fill" style="width:' + pct + '%"></div></div>' +
+      '</div>';
+    }).join("");
   }
 
   function setupChartInteraction(){
@@ -656,6 +782,14 @@ footer{text-align:center;color:var(--muted);font-size:0.72rem;margin-top:26px;op
   }
 
   /* ---------- List rendering ---------- */
+  var MESES_LARGOS = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+
+  function groupLabel(iso){
+    var parts = iso.split("-");
+    var y = parts[0], m = parseInt(parts[1],10) - 1;
+    return MESES_LARGOS[m] + " " + y;
+  }
+
   function renderList(){
     var el = document.getElementById("torneoList");
     var countEl = document.getElementById("listCount");
@@ -667,7 +801,15 @@ footer{text-align:center;color:var(--muted);font-size:0.72rem;margin-top:26px;op
       return;
     }
 
-    el.innerHTML = sorted.map(function(t){
+    var html = "";
+    var lastGroup = null;
+    sorted.forEach(function(t){
+      var group = t.fecha.slice(0,7);
+      if (group !== lastGroup){
+        html += '<div class="group-header">' + groupLabel(t.fecha) + '</div>';
+        lastGroup = group;
+      }
+
       var badge = t.victoria
         ? '<span class="badge win">Ganado</span>'
         : '<span class="badge lose">Ronda ' + (t.ronda||"?") + (isRondaFinal(t.parejas,t.ronda) ? " (final)" : "") + '</span>';
@@ -677,10 +819,13 @@ footer{text-align:center;color:var(--muted);font-size:0.72rem;margin-top:26px;op
       if (t.otrosPremios) chips += '<span class="chip">' + escapeHtml(t.otrosPremios) + '</span>';
 
       var anot = t.anotaciones ? '<div class="anotaciones">“' + escapeHtml(t.anotaciones) + '”</div>' : "";
+      var ubicacion = (t.provincia || t.localidad)
+        ? '<div class="locChip">' + escapeHtml([t.localidad, t.provincia].filter(Boolean).join(", ")) + '</div>'
+        : "";
 
-      return '<div class="panel torneo-card" data-id="'+t.id+'">' +
+      html += '<div class="panel torneo-card" data-id="'+t.id+'">' +
         '<div class="row1">' +
-          '<div><div class="fecha">'+fmtFechaLarga(t.fecha)+'</div><div class="lugar">'+escapeHtml(t.lugar)+'</div></div>' +
+          '<div><div class="fecha">'+fmtFechaLarga(t.fecha)+'</div><div class="lugar">'+escapeHtml(t.lugar)+'</div>' + ubicacion + '</div>' +
           badge +
         '</div>' +
         '<div class="meta-row">' +
@@ -695,7 +840,8 @@ footer{text-align:center;color:var(--muted);font-size:0.72rem;margin-top:26px;op
           '<button class="btn btn-small btn-danger" data-action="delete" data-id="'+t.id+'">Borrar</button>' +
         '</div>' +
       '</div>';
-    }).join("");
+    });
+    el.innerHTML = html;
   }
 
   function escapeHtml(str){
@@ -707,6 +853,8 @@ footer{text-align:center;color:var(--muted);font-size:0.72rem;margin-top:26px;op
   function renderAll(){
     renderStats();
     renderChart();
+    renderProvinceFilter();
+    renderProvinceBreakdown();
     renderList();
   }
 
@@ -717,6 +865,8 @@ footer{text-align:center;color:var(--muted);font-size:0.72rem;margin-top:26px;op
   var fFecha = document.getElementById("fFecha");
   var fPrecio = document.getElementById("fPrecio");
   var fLugar = document.getElementById("fLugar");
+  var fProvincia = document.getElementById("fProvincia");
+  var fLocalidad = document.getElementById("fLocalidad");
   var fParejas = document.getElementById("fParejas");
   var fRonda = document.getElementById("fRonda");
   var fVictoria = document.getElementById("fVictoria");
@@ -734,6 +884,8 @@ footer{text-align:center;color:var(--muted);font-size:0.72rem;margin-top:26px;op
       fFecha.value = torneo.fecha;
       fPrecio.value = torneo.precio;
       fLugar.value = torneo.lugar;
+      fProvincia.value = torneo.provincia || "";
+      fLocalidad.value = torneo.localidad || "";
       fParejas.value = torneo.parejas;
       fRonda.value = torneo.ronda || "";
       fVictoria.checked = !!torneo.victoria;
@@ -780,6 +932,8 @@ footer{text-align:center;color:var(--muted);font-size:0.72rem;margin-top:26px;op
       fecha: fFecha.value,
       precio: parseFloat(fPrecio.value) || 0,
       lugar: fLugar.value.trim(),
+      provincia: fProvincia.value,
+      localidad: fLocalidad.value.trim(),
       parejas: parseInt(fParejas.value,10) || 0,
       victoria: fVictoria.checked,
       ronda: fVictoria.checked ? null : (parseInt(fRonda.value,10) || null),
@@ -815,6 +969,28 @@ footer{text-align:center;color:var(--muted);font-size:0.72rem;margin-top:26px;op
         });
       }
     }
+  });
+
+  /* ---------- Tabs ---------- */
+  var tabButtons = document.querySelectorAll(".tab-btn");
+  var tabPanels = { torneos: document.getElementById("panelTorneos"), stats: document.getElementById("panelStats") };
+  tabButtons.forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var target = btn.getAttribute("data-tab");
+      tabButtons.forEach(function(b){ b.classList.toggle("active", b === btn); });
+      Object.keys(tabPanels).forEach(function(key){ tabPanels[key].classList.toggle("active", key === target); });
+      if (target === "stats") drawChart();
+    });
+  });
+
+  /* ---------- Province filter ---------- */
+  document.getElementById("provinceFilter").addEventListener("click", function(e){
+    var btn = e.target.closest("button[data-provincia]");
+    if (!btn) return;
+    statsProvinceFilter = btn.getAttribute("data-provincia");
+    renderStats();
+    renderChart();
+    renderProvinceFilter();
   });
 
   /* ---------- Init ---------- */
